@@ -58,7 +58,7 @@ readtex(fname, buf, size) char *fname;
 unsigned long *buf;
 {
     long ifd;
-    char file[80];
+    char file[512];
 
     strcpy(file, datadir);
     strcat(file, fname);

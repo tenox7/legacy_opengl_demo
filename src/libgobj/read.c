@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-static char ifname[80];
+static char ifname[1024];
 static FILE *ifp;
 static int linenumber;
 
@@ -38,7 +38,8 @@ object_t *readobj(char *fname)
     int i;
     int at = 0;
 
-    strncpy(ifname, fname, 80);
+    strncpy(ifname, fname, sizeof(ifname) - 1);
+    ifname[sizeof(ifname) - 1] = '\0';
     if ((ifp = fopen(ifname, "r")) == NULL)
     {
 	fprintf(stderr, "readobj: can't open \"%s\"\n", ifname);

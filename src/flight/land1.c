@@ -128,9 +128,11 @@ int init_graphics(char *name)
         /*
          *  setup data directories
          */
-        strncpy(sounddir, datadir, 108);
+        strncpy(sounddir, datadir, 500);
+        sounddir[500] = '\0';
         strcat(sounddir, "sound/");
-        strncpy(objdir, datadir, 108);
+        strncpy(objdir, datadir, 500);
+        objdir[500] = '\0';
         if (in_cmode)
             strcat(objdir, "ci/");
         else
@@ -218,10 +220,13 @@ int init_graphics(char *name)
 }
 
 void init_window_size() {
-    getsize((long *)&xmaxwindow, (long *)&ymaxwindow);
-    xmaxwindow -= 1;
-    ymaxwindow -= 1;
-    getorigin((long *)&xorigin, (long *)&yorigin);
+    int w, h, x, y;
+    getsize(&w, &h);
+    xmaxwindow = w - 1;
+    ymaxwindow = h - 1;
+    getorigin(&x, &y);
+    xorigin = x;
+    yorigin = y;
     xmiddle = (xmaxwindow - 1) >> 1;
     ymiddle = (ymaxwindow - 1) >> 1;
 

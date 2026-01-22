@@ -232,7 +232,7 @@ void init_instruments() {
         strcpy(objfname, objdir);
         strcat(objfname, "wlight.d");
         wlight = readobj(objfname);
-        if (in_cmode && bits_cmode < 6) {
+        if (wlight && in_cmode && bits_cmode < 6) {
             remap_geom(&wlight->glist[1]);
             remap_geom(&wlight->glist[2]);
         }
@@ -258,8 +258,10 @@ void init_instruments() {
     init_gear(34.0, -9.0, 0.0, 0.4);
     init_text_meter(0.0, -10.8, 0.0, 0.58);
     init_stores_meter(0.0, -6.2, 0.0, 0.58);
-    init_wlight(-23.5, -8.5, 0.0, 0.5, &g_limit, "G-LIMIT");
-    init_wlight(-23.5, -11.5, 0.0, 0.5, &wing_stall, "WING STALL");
+    if (wlight) {
+        init_wlight(-23.5, -8.5, 0.0, 0.5, &g_limit, "G-LIMIT");
+        init_wlight(-23.5, -11.5, 0.0, 0.5, &wing_stall, "WING STALL");
+    }
 
     set_instruments_time(1);
 }
@@ -497,6 +499,9 @@ draw_horizon(horizon_t *inst) {
 draw_horizon_ci(horizon_t *inst) {
     static float bars[][2] = {{-6.6, -0.1}, {-3.0, -0.1}, {3.0, -0.1}, {6.6, -0.1}};
 
+    if (!inst->plateobject)
+        return;
+
     long ox, oy;
 
     pushmatrix();
@@ -682,6 +687,9 @@ typedef struct {
  * Draw the artificial wlight
  */
 draw_wlight(wlight_t *inst) {
+    if (!inst->plateobject)
+        return;
+
     pushmatrix();
     translate(inst->px, inst->py, inst->pz);
     scale(inst->size, inst->size, inst->size);
@@ -1161,6 +1169,9 @@ draw_altimeter_ci(altimeter_t *inst) {
     short sl, sr, sb, st;
     char s[4];
     int i, x;
+
+    if (!inst->plateobject)
+        return;
 
     pushmatrix();
     translate(inst->px, inst->py, inst->pz);
@@ -2353,6 +2364,9 @@ draw_radar(radar_t *inst) {
                                  {0.2, -2.0},  {0.5, -2.3},  {-0.5, -2.3}, {-0.2, -2.0}, {-0.2, -1.4},
                                  {-1.2, -2.0}, {-1.2, -1.8}, {-0.2, -1.0}};
     long ox, oy;
+
+    if (!inst->plateobject)
+        return;
 
     pushmatrix();
     translate(inst->px, inst->py, inst->pz);

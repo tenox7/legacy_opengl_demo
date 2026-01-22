@@ -1504,18 +1504,18 @@ int32_t qread(int16_t *val) {
         // Sinon, on laisse GLUT produire des événements UNE fois
         glutMainLoopEvent();
 
-        // Gestion fenêtre fermée: pas d'event → retourne 0
         if (glutGetWindow() == 0) {
             *val = 0;
             return 0;
         }
 
-        // Petit délai pour éviter 100% CPU si pas d'événements
+#ifndef __APPLE__
         #ifdef _WIN32
         Sleep(1);
         #else
         usleep(1000);
         #endif
+#endif
     }
 }
 
@@ -1775,11 +1775,13 @@ static void iris_display_func(void) {
 }
 
 static void iris_idle_func(void) {
+#ifndef __APPLE__
     #ifdef _WIN32
     Sleep(1);
     #else
     usleep(1000);
     #endif
+#endif
 }
 
 void iris_reshape_func(int width, int height) {

@@ -133,10 +133,10 @@ object_t *planeobj[9];
 object_t *swobj;
 object_t *threatobj;
 object_t *planeboxobj;
-char datadir[108];
-char sounddir[108];
-char objdir[108];
-char objfname[128];
+char datadir[512];
+char sounddir[512];
+char objdir[512];
+char objfname[512];
 grid_t *hillsgrid;
 
 obj_list_t sort_obj[MAX_OBJS];
@@ -303,7 +303,28 @@ void flight(int argc, char *argv[]) {
         "Usage: flight  [-bdhnsO] [-i filename] [-o filename] [-D datadirectory] [-T ttl] [-I addr]\n";
 
     test_mode = FALSE;
-    strncpy(datadir, DATADIR, 80);
+
+#ifdef __APPLE__
+    char exe_path[1024];
+    uint32_t size = sizeof(exe_path);
+    extern int _NSGetExecutablePath(char* buf, uint32_t* bufsize);
+    if (_NSGetExecutablePath(exe_path, &size) == 0 && strstr(exe_path, ".app/Contents/MacOS")) {
+        char *macos_pos = strstr(exe_path, "/MacOS/");
+        if (macos_pos) {
+            *macos_pos = '\0';
+            snprintf(datadir, sizeof(datadir), "%s/Resources/data/", exe_path);
+        } else {
+            strncpy(datadir, DATADIR, sizeof(datadir) - 1);
+            datadir[sizeof(datadir) - 1] = '\0';
+        }
+    } else {
+        strncpy(datadir, DATADIR, sizeof(datadir) - 1);
+        datadir[sizeof(datadir) - 1] = '\0';
+    }
+#else
+    strncpy(datadir, DATADIR, sizeof(datadir) - 1);
+    datadir[sizeof(datadir) - 1] = '\0';
+#endif
 
     if (strcmp(argv[0] + strlen(argv[0]) - strlen("shadow"), "shadow") == 0) {
         shadow = TRUE;

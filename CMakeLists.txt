@@ -188,3 +188,58 @@ foreach(dll ${ALL_DLLS})
         COMMENT "Copie de la DLL ${dll} vers ${DIST_DIR}\n"
     )
 endforeach()
+
+if(APPLE)
+    set(APP_NAME "Flight")
+    set(APP_BUNDLE_DIR "${CMAKE_BINARY_DIR}/${APP_NAME}.app")
+    set(APP_CONTENTS_DIR "${APP_BUNDLE_DIR}/Contents")
+    set(APP_MACOS_DIR "${APP_CONTENTS_DIR}/MacOS")
+    set(APP_RESOURCES_DIR "${APP_CONTENTS_DIR}/Resources")
+
+    add_custom_target(flight-app
+        DEPENDS flight
+        COMMENT "Creating Flight.app bundle and DMG"
+    )
+
+    add_custom_command(TARGET flight-app POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${APP_MACOS_DIR}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${APP_RESOURCES_DIR}/data"
+        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:flight>" "${APP_MACOS_DIR}/flight"
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_SOURCE_DIR}/data" "${APP_RESOURCES_DIR}/data"
+        COMMAND bash "${CMAKE_SOURCE_DIR}/create_symlinks.sh" "${APP_RESOURCES_DIR}/data"
+        COMMENT "Copying flight executable and data to app bundle"
+    )
+
+    file(WRITE "${CMAKE_BINARY_DIR}/Info.plist.in" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>flight</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.sgi.flight</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Flight</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.14</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>")
+
+    add_custom_command(TARGET flight-app POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/Info.plist.in" "${APP_CONTENTS_DIR}/Info.plist"
+        COMMAND hdiutil create -volname "Flight" -srcfolder "${APP_BUNDLE_DIR}" -ov -format UDZO "${CMAKE_BINARY_DIR}/Flight.dmg"
+        COMMENT "Creating Info.plist and Flight.dmg"
+    )
+endif()
