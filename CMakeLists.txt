@@ -242,4 +242,78 @@ if(APPLE)
         COMMAND hdiutil create -volname "Flight" -srcfolder "${APP_BUNDLE_DIR}" -ov -format UDZO "${CMAKE_BINARY_DIR}/Flight.dmg"
         COMMENT "Creating Info.plist and Flight.dmg"
     )
+
+    set(SGIDEMOS_APP_NAME "SGIDemos")
+    set(SGIDEMOS_APP_BUNDLE_DIR "${CMAKE_BINARY_DIR}/${SGIDEMOS_APP_NAME}.app")
+    set(SGIDEMOS_APP_CONTENTS_DIR "${SGIDEMOS_APP_BUNDLE_DIR}/Contents")
+    set(SGIDEMOS_APP_MACOS_DIR "${SGIDEMOS_APP_CONTENTS_DIR}/MacOS")
+    set(SGIDEMOS_APP_RESOURCES_DIR "${SGIDEMOS_APP_CONTENTS_DIR}/Resources")
+
+    add_custom_target(sgidemos-app
+        DEPENDS buttonfly ${LEGACY_DEMOS} ${LEGACY_INTERACTIVE}
+        COMMENT "Creating SGIDemos.app bundle and DMG"
+    )
+
+    add_custom_command(TARGET sgidemos-app POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_MACOS_DIR}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_MACOS_DIR}/demos"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_MACOS_DIR}/interactive"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_RESOURCES_DIR}/data"
+        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:buttonfly>" "${SGIDEMOS_APP_MACOS_DIR}/buttonfly"
+        COMMENT "Creating app bundle directories and copying buttonfly"
+    )
+
+    foreach(demo ${LEGACY_DEMOS})
+        add_custom_command(TARGET sgidemos-app POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:${demo}>" "${SGIDEMOS_APP_MACOS_DIR}/demos/${demo}"
+            COMMENT "Copying ${demo} to demos directory"
+        )
+    endforeach()
+
+    foreach(demo ${LEGACY_INTERACTIVE})
+        add_custom_command(TARGET sgidemos-app POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:${demo}>" "${SGIDEMOS_APP_MACOS_DIR}/interactive/${demo}"
+            COMMENT "Copying ${demo} to interactive directory"
+        )
+    endforeach()
+
+    add_custom_command(TARGET sgidemos-app POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_SOURCE_DIR}/data" "${SGIDEMOS_APP_RESOURCES_DIR}/data"
+        COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/data/buttonfly_linux/menu" "${SGIDEMOS_APP_MACOS_DIR}/menu"
+        COMMAND bash "${CMAKE_SOURCE_DIR}/create_symlinks.sh" "${SGIDEMOS_APP_RESOURCES_DIR}/data"
+        COMMENT "Copying data and menu to app bundle"
+    )
+
+    file(WRITE "${CMAKE_BINARY_DIR}/SGIDemos.plist.in" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>buttonfly</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.sgi.demos</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>SGI Demos</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.14</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>")
+
+    add_custom_command(TARGET sgidemos-app POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/SGIDemos.plist.in" "${SGIDEMOS_APP_CONTENTS_DIR}/Info.plist"
+        COMMAND hdiutil create -volname "SGI Demons" -srcfolder "${SGIDEMOS_APP_BUNDLE_DIR}" -ov -format UDZO "${CMAKE_BINARY_DIR}/SGIDemos.dmg"
+        COMMENT "Creating Info.plist and SGIDemos.dmg"
+    )
 endif()
