@@ -4,6 +4,7 @@
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
+#include <OpenGL/OpenGL.h>
 #endif
 
 #include "iris2ogl.h"
@@ -20,8 +21,11 @@
 
 #ifdef __APPLE__
 void glutMainLoopEvent(void) {
-    extern void glutCheckLoop(void);
-    glutCheckLoop();
+    static int call_count = 0;
+    if (++call_count % 2 == 0) {
+        extern void glutCheckLoop(void);
+        glutCheckLoop();
+    }
 }
 #endif
 
@@ -2578,8 +2582,15 @@ void overlay(int planes) {
 }
 
 void swapinterval(int interval) {
-    // Stub - VSync control not in GLUT API
+#ifdef __APPLE__
+    CGLContextObj ctx = CGLGetCurrentContext();
+    if (ctx) {
+        GLint sync = interval;
+        CGLSetParameter(ctx, kCGLCPSwapInterval, &sync);
+    }
+#else
     (void)interval;
+#endif
 }
 
 long getgconfig(int what) {

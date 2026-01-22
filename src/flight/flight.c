@@ -818,6 +818,10 @@ flight_loop() {
         Lmin_g = Lmin * gravity;
 
         swapbuffers();
+
+#ifdef __APPLE__
+        usleep(1000);
+#endif
     }
 }
 
