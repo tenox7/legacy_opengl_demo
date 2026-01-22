@@ -21,11 +21,8 @@
 
 #ifdef __APPLE__
 void glutMainLoopEvent(void) {
-    static int call_count = 0;
-    if (++call_count % 2 == 0) {
-        extern void glutCheckLoop(void);
-        glutCheckLoop();
-    }
+    extern void glutCheckLoop(void);
+    glutCheckLoop();
 }
 #endif
 
@@ -1778,14 +1775,10 @@ static void iris_display_func(void) {
 }
 
 static void iris_idle_func(void) {
-    #ifdef __APPLE__
-    usleep(16000);
-    #else
     #ifdef _WIN32
     Sleep(1);
     #else
     usleep(1000);
-    #endif
     #endif
 }
 

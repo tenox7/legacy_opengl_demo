@@ -111,7 +111,7 @@ int init_graphics(char *name)
     clear();
 
     if (firsttime) {
-        swapinterval(2);
+        swapinterval(1);
 
 #ifndef NO_MS
         if (getgdesc(GD_MULTISAMPLE) > 0)
