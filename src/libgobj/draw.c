@@ -65,7 +65,7 @@ long state;
     } else
         i = 0;
 
-    setmode(np->modebits);
+    gobj_setmode(np->modebits);
 
     if (np->tcount) {
         pushmatrix();
@@ -518,7 +518,7 @@ drawcdsgeom(g) geometry_t *g;
     }
 }
 
-setmode(mode) long mode;
+gobj_setmode(mode) long mode;
 {
     int modeson = mode & (~curmode);
     int modesoff = (~mode) & curmode;
@@ -960,7 +960,7 @@ long state;
     } else
         i = 0;
 
-    setmode(np->modebits);
+    gobj_setmode(np->modebits);
 
     if (np->tcount) {
         pushmatrix();

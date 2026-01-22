@@ -228,7 +228,7 @@ void display_score() {
 int wait_for_input() {
     short type, val;
 
-    while ((type = qread(&val)) != KEYBD) /* wait for character	*/
+    while ((type = qread(&val)) != KEYBD)
         if (type == REDRAW)
             redraw_screen();
 

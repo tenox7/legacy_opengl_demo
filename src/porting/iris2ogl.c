@@ -2,6 +2,10 @@
  * iris2ogl.c - IRIS GL to OpenGL/GLUT compatibility layer implementation
  */
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #include "iris2ogl.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +13,16 @@
 #include <math.h>
 
 #ifdef _WIN32
-#include <windows.h>  // For Sleep()
+#include <windows.h>
 #else
-#include <unistd.h>   // For usleep()
+#include <unistd.h>
+#endif
+
+#ifdef __APPLE__
+void glutMainLoopEvent(void) {
+    extern void glutCheckLoop(void);
+    glutCheckLoop();
+}
 #endif
 
 #ifndef M_PI
@@ -1284,11 +1295,15 @@ void winopen(const char *title) {
     glutMouseFunc(iris_mouse_func);
     glutMotionFunc(iris_motion_func);
     glutPassiveMotionFunc(iris_motion_func);
-    
+
     // Initialize OpenGL state
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+#ifdef __APPLE__
+    extern void glutCheckLoop(void);
+    glutCheckLoop();
+#endif
     if (queued_devices[REDRAW]) {
         queue_event(REDRAW, 1);
     }
@@ -1460,15 +1475,12 @@ void unqdevice(Device dev) {
 }
 
 Boolean qtest(void) {
-    /* 1) Si la file contient déjà des événements, ne touche pas à GLUT */
     if (event_queue_head != event_queue_tail) {
         return TRUE;
     }
 
-    /* 3) Sinon, on laisse GLUT traiter au plus une vague d'événements */
     glutMainLoopEvent();
 
-    /* 4) Re-tester la file IRIS */
     if (event_queue_head != event_queue_tail) {
         return TRUE;
     } else {
@@ -1525,7 +1537,7 @@ Boolean getbutton(Device dev) {
 // GLUT callback helpers to populate event queue
 void iris_keyboard_func(unsigned char key, int x, int y) {
     Device dev = 0;
-    
+
     switch (key) {
         case 27: dev = ESCKEY; break;
         case 13: dev = RETKEY; break;
@@ -1655,6 +1667,7 @@ void iris_special_up_func(int key, int x, int y) {
 void iris_mouse_func(int button, int state, int x, int y) {
     Device dev = 0;
     Boolean pressed = (state == GLUT_DOWN);
+
     switch (button) {
         case GLUT_LEFT_BUTTON:
             dev = LEFTMOUSE;
@@ -1671,7 +1684,7 @@ void iris_mouse_func(int button, int state, int x, int y) {
         default:
             return;
     }
-    
+
     if (queued_devices[dev]) {
         queue_event(dev, pressed ? 1 : 0);
     }
@@ -1692,7 +1705,7 @@ int iris_get_mouse_y(void) {
 void iris_motion_func(int x, int y) {
     current_mouse_x = x;
     current_mouse_y = window_height - y;
-    
+
     if (queued_devices[MOUSEX]) {
         queue_event(MOUSEX, current_mouse_x);
     }
@@ -1741,21 +1754,34 @@ void iris_spaceball_update(float dtx, float dty, float dtz,
 
 
 static void iris_display_func(void) {
-    // Generate REDRAW event if it's being listened to
+#ifdef __APPLE__
+    if (queued_devices[REDRAW]) {
+        int count = 0;
+        for (int i = event_queue_head; i != event_queue_tail; i = (i + 1) % EVENT_QUEUE_SIZE) {
+            if (event_queue[i].device == REDRAW) {
+                count++;
+            }
+        }
+        if (count < 2) {
+            queue_event(REDRAW, 1);
+        }
+    }
+#else
     if (queued_devices[REDRAW]) {
         queue_event(REDRAW, 1);
     }
-    // Don't actually draw here - let the application handle it
-    // The application will call swapbuffers() when ready
+#endif
 }
 
 static void iris_idle_func(void) {
-    // Idle callback - keeps GLUT processing events
-    // This allows qread() to receive events even when blocked
+    #ifdef __APPLE__
+    usleep(16000);
+    #else
     #ifdef _WIN32
     Sleep(1);
     #else
     usleep(1000);
+    #endif
     #endif
 }
 
@@ -2685,15 +2711,13 @@ static void queue_tied_devices(Device master_dev) {
 // Modifier queue_event pour supporter les devices liés
 static void queue_event(Device dev, int16_t val) {
     if ((event_queue_tail + 1) % EVENT_QUEUE_SIZE == event_queue_head) {
-        // Queue full, drop oldest event
         event_queue_head = (event_queue_head + 1) % EVENT_QUEUE_SIZE;
     }
-    
+
     event_queue[event_queue_tail].device = dev;
     event_queue[event_queue_tail].value = val;
     event_queue_tail = (event_queue_tail + 1) % EVENT_QUEUE_SIZE;
-    
-    // Queue tied devices
+
     queue_tied_devices(dev);
 }
 

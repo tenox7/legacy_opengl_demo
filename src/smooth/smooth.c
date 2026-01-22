@@ -217,7 +217,7 @@ display(void)
 }
 
 void
-keyboard(char key, int x, int y)
+keyboard(unsigned char key, int x, int y)
 {
   GLint params[2];
 

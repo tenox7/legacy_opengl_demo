@@ -296,17 +296,13 @@ void read_objects(int event_break);
 
 
 void flight(int argc, char *argv[]) {
-    int itemp; /* temp integer variable	*/
-
-    float temp; /* temp float variable	*/
-
-    Plane ptemp, pp; /* my plane data structure	*/
-
+    int itemp;
+    float temp;
+    Plane ptemp, pp;
     static char usage[] =
         "Usage: flight  [-bdhnsO] [-i filename] [-o filename] [-D datadirectory] [-T ttl] [-I addr]\n";
 
     test_mode = FALSE;
-
     strncpy(datadir, DATADIR, 80);
 
     if (strcmp(argv[0] + strlen(argv[0]) - strlen("shadow"), "shadow") == 0) {
@@ -639,12 +635,12 @@ flight_start() {
  *  main loop for flight
  */
 flight_loop() {
-    unsigned char frame_count = 0; /* count of frames */
+    unsigned char frame_count = 0;
     int itemp;
     Plane pp = planes[0], ptemp;
 
     while (!restart) {
-        clearz(); /* do this while all the calculations are happening */
+        clearz();
         if (pp->y <= 10.0 && pp->status <= MEXPLODE) {
             cpack(0x0);
             clear();
@@ -726,7 +722,7 @@ flight_loop() {
         draw_scene();
 
         if (dogfight)
-            draw_messages(); /* display any network messages	*/
+            draw_messages();
 
         /****************************************************************
         /*	compute new velocities, accelerations
@@ -1026,9 +1022,13 @@ init_dials() {
     setvaluator(DIAL4, 240, 0, 480);
 }
 
+#ifdef __APPLE__
+#define TEST_EVENT
+#else
 #define TEST_EVENT                                                                                                     \
     if (event_break && qtest())                                                                                        \
     return
+#endif
 
 /*
  *  read_objects() reads the data files needed by flight.  It is designed
@@ -2856,7 +2856,7 @@ select_plane() {
 
     pp->type = -1;
 
-    while (pp->type == -1)
+    while (pp->type == -1) {
         switch (pick_plane()) {
         case 1:
             plane_type = C150_NAME;
@@ -3198,6 +3198,7 @@ select_plane() {
         case 27 - '0':
             end_of_program();
         }
+    }
 
     if (!hud && new_inst)
         draw_instruments();

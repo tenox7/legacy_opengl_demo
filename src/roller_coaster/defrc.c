@@ -24,16 +24,16 @@ int tot = 0;
 extern GLfloat x[MAX], y[MAX], z[MAX];
 extern GLfloat dx[MAX], dy[MAX], dz[MAX];
 extern GLfloat hd[MAX], al[MAX], pt[MAX], rl[MAX];
-extern GLfloat strips[27][MAX][3], normal[24][MAX][3];
+extern GLfloat strips[27][MAX][3], rc_normal[24][MAX][3];
 extern int opt[MAX];
-extern GLfloat bnormal[2][MAX][3];
+extern GLfloat brc_normal[2][MAX][3];
 extern GLfloat r1[MAX], r2[MAX], r3[MAX];
 
 void update_parameters(void);
 void update_parameter(Parameter *p);
 void init_parameter(Parameter *p);
 
-Vector strips_tmp[27], normal_tmp[27];
+Vector strips_tmp[27], rc_normal_tmp[27];
 
 void calculate_rc(void)
 {
@@ -74,7 +74,7 @@ void calculate_rc(void)
 
     for (i=0;i<27;i++)
     {
-	init_vector(&normal_tmp[i]);
+	init_vector(&rc_normal_tmp[i]);
 	init_vector(&strips_tmp[i]);
     }
 
@@ -89,8 +89,8 @@ void calculate_rc(void)
     {
 	for (j=0;j<8;j++)
 	{
-	    normal_tmp[i*8+j].index[2] = cos(j*M_PI/4);
-	    normal_tmp[i*8+j].index[1] = sin(j*M_PI/4);
+	    rc_normal_tmp[i*8+j].index[2] = cos(j*M_PI/4);
+	    rc_normal_tmp[i*8+j].index[1] = sin(j*M_PI/4);
 	    strips_tmp[i*8+j].index[2] += cos(j*M_PI/4)/(i==2?2:4);
 	    strips_tmp[i*8+j].index[1] += sin(j*M_PI/4)/(i==2?2:4);
 	}
@@ -186,28 +186,28 @@ void calculate_rc(void)
 		    strips[j][tot][1] = v.index[1];
 		    strips[j][tot][2] = v.index[2];
 
-		    copy_vector(&v, &normal_tmp[j]);
+		    copy_vector(&v, &rc_normal_tmp[j]);
 		    multiply_matrix_vector(&t2, &v);
 		    
-		    normal[j][tot][0] = v.index[0] - t2.index[3][0];
-		    normal[j][tot][1] = v.index[1] - t2.index[3][1];
-		    normal[j][tot][2] = v.index[2] - t2.index[3][2];
+		    rc_normal[j][tot][0] = v.index[0] - t2.index[3][0];
+		    rc_normal[j][tot][1] = v.index[1] - t2.index[3][1];
+		    rc_normal[j][tot][2] = v.index[2] - t2.index[3][2];
 		}
 		init_vector(&v);
 		v.index[0] = -1.0;
 		v.index[1] = -1.5;
 		multiply_matrix_vector(&pos, &v);
-		bnormal[0][tot][0] = v.index[0] - pos.index[3][0];
-		bnormal[0][tot][1] = v.index[1] - pos.index[3][1];
-		bnormal[0][tot][2] = v.index[2] - pos.index[3][2];
+		brc_normal[0][tot][0] = v.index[0] - pos.index[3][0];
+		brc_normal[0][tot][1] = v.index[1] - pos.index[3][1];
+		brc_normal[0][tot][2] = v.index[2] - pos.index[3][2];
 
 		init_vector(&v);
 		v.index[2] = -1.0;
 		v.index[1] = 1.5;
 		multiply_matrix_vector(&pos, &v);
-		bnormal[0][tot][0] = v.index[0] - pos.index[3][0];
-		bnormal[0][tot][1] = v.index[1] - pos.index[3][1];
-		bnormal[0][tot][2] = v.index[2] - pos.index[3][2];
+		brc_normal[0][tot][0] = v.index[0] - pos.index[3][0];
+		brc_normal[0][tot][1] = v.index[1] - pos.index[3][1];
+		brc_normal[0][tot][2] = v.index[2] - pos.index[3][2];
 
 #if 0
 		copy_matrix(&tmp, &pos);

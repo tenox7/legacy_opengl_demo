@@ -45,7 +45,7 @@ int init_graphics(char *name)
         0x0700, 0x0e00, 0x1c00, 0x3800, 0x7000, 0xe000, 0xc001, 0x8003,
     };
 
-    static int firsttime = 1; /* 0 after first call to init_graphics() */
+    static int firsttime = 1;
 
     if (firsttime) {
         char gver[32];

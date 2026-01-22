@@ -7,18 +7,22 @@
 #define IRIS2OGL_H
 
 #ifdef _WIN32
-    // Définir WIN32_LEAN_AND_MEAN pour exclure winsock.h de windows.h
-    // Nous utiliserons winsock2.h depuis irix_network.h
     #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
 #endif
 
-
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+void glutMainLoopEvent(void);
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#endif
 #include <stdint.h>
 #include <time.h>
 #include <math.h>
@@ -47,7 +51,11 @@ typedef float Matrix[4][4];
 typedef uint16_t Colorindex;
 typedef uint16_t RGBvalue;
 typedef uint16_t Pattern16[16];
+#ifdef __APPLE__
+typedef unsigned char Boolean;
+#else
 typedef int32_t Boolean;
+#endif
 typedef int16_t Device;
 
 // IRIS GL color constants
@@ -284,7 +292,7 @@ fmfonthandle fmfindfont(char *fontname);
 void fmsetfont(fmfonthandle font);
 void fmprstr(char *str);
 fmfonthandle fmscalefont(fmfonthandle font, float scale);
-void charstr(char *str);
+void charstr(const char *str);
 
 // Internal font scaling support (defined in iris2ogl_missing.c)
 int is_scaled_font(fmfonthandle font, ScaledFont** out_sf);
@@ -626,9 +634,11 @@ long random(void);
 #endif
 
 // === Compatibility types ===
+#ifndef __APPLE__
 typedef struct {
     Coord x, y, z;
 } Point;
+#endif
 
 
 #define ZF_NEVER    0

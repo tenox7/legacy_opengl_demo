@@ -1,10 +1,28 @@
 cmake_minimum_required(VERSION 3.26.0)
-project("OpenGL Glut Legacy Demos" VERSION 1.0.0 LANGUAGES C CXX)
+if(APPLE)
+    project("OpenGL Glut Legacy Demos" VERSION 1.0.0 LANGUAGES C CXX OBJC)
+else()
+    project("OpenGL Glut Legacy Demos" VERSION 1.0.0 LANGUAGES C CXX)
+endif()
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 find_package(OpenGL REQUIRED)
+
 find_package(GLUT REQUIRED)
+
+if(APPLE)
+    include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src/porting)
+    add_compile_definitions(GL_SILENCE_DEPRECATION)
+    add_compile_definitions(HZ=100)
+    add_compile_options(
+        -Wno-error=implicit-function-declaration
+        -Wno-error=return-mismatch
+        -Wno-error=int-conversion
+        -Wno-error=incompatible-function-pointer-types
+        -Wno-error=implicit-int
+    )
+endif()
 
 add_subdirectory(src/porting)
 
@@ -15,17 +33,23 @@ add_subdirectory(src/libdemo)
 add_subdirectory(src/smooth)
 add_subdirectory(src/ideas)
 add_subdirectory(src/atlantis)
-add_subdirectory(src/roller_coaster)
+if(NOT APPLE)
+    add_subdirectory(src/roller_coaster)
+endif()
 add_subdirectory(src/bounce)
 add_subdirectory(src/distort)
 add_subdirectory(src/gl_puzzle)
 add_subdirectory(src/demos)
 add_subdirectory(src/buttonfly)
-add_subdirectory(src/insect)
+if(NOT APPLE)
+    add_subdirectory(src/insect)
+endif()
 add_subdirectory(src/cycles)
 add_subdirectory(src/objviewer)
 add_subdirectory(src/flip)
-add_subdirectory(src/space)
+if(NOT APPLE)
+    add_subdirectory(src/space)
+endif()
 add_subdirectory(src/flight)
 add_subdirectory(src/iris)
 
@@ -39,14 +63,15 @@ set(LEGACY_INTERACTIVE
     flight
     flip
     gl_puzzle
-    insect
     maze
     objviewer
     road
     smooth
-    space
     cubetris
 )
+if(NOT APPLE)
+    list(APPEND LEGACY_INTERACTIVE insect space)
+endif()
 set (LEGACY_DEMOS
     bounce
     atlantis
@@ -56,7 +81,6 @@ set (LEGACY_DEMOS
     sgi_bounce
     reflexion
     plasma
-    rc
     stars
     particles
     mandel
@@ -64,6 +88,9 @@ set (LEGACY_DEMOS
     heat
     brick
 )
+if(NOT APPLE)
+    list(APPEND LEGACY_DEMOS rc)
+endif()
 
 # Répertoire de distribution
 set(DIST_DIR "${CMAKE_BINARY_DIR}/dist")
