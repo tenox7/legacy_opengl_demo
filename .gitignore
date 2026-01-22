@@ -1,1 +1,3 @@
-out
+out*.dmg
+*.tar.gz
+macos-bin/
