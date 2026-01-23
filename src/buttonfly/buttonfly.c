@@ -8,6 +8,11 @@
 #include "data.h"
 #include "graph.h"
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#include <unistd.h>
+#endif
+
 #define C_WIDTH 2.0f
 
 static int esc_pressed = 0;
@@ -324,6 +329,18 @@ void mouse_click(int button, int state, int x, int y) {
 
 int main (int argc, char *argv[]) {
     static int windows;
+
+    #ifdef __APPLE__
+    char exe_path[1024];
+    uint32_t size = sizeof(exe_path);
+    if (_NSGetExecutablePath(exe_path, &size) == 0) {
+        char *last_slash = strrchr(exe_path, '/');
+        if (last_slash) {
+            *last_slash = '\0';
+            chdir(exe_path);
+        }
+    }
+    #endif
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_STENCIL);

@@ -259,7 +259,7 @@ if(APPLE)
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_MACOS_DIR}/demos"
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_MACOS_DIR}/interactive"
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${SGIDEMOS_APP_RESOURCES_DIR}/data"
-        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:buttonfly>" "${SGIDEMOS_APP_MACOS_DIR}/buttonfly"
+        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:buttonfly>" "${SGIDEMOS_APP_MACOS_DIR}/buttonfly-bin"
         COMMENT "Creating app bundle directories and copying buttonfly"
     )
 
@@ -281,7 +281,20 @@ if(APPLE)
         COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_SOURCE_DIR}/data" "${SGIDEMOS_APP_RESOURCES_DIR}/data"
         COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/data/buttonfly_linux/menu" "${SGIDEMOS_APP_MACOS_DIR}/menu"
         COMMAND bash "${CMAKE_SOURCE_DIR}/create_symlinks.sh" "${SGIDEMOS_APP_RESOURCES_DIR}/data"
+        COMMAND "${CMAKE_COMMAND}" -E create_symlink "../Resources/data" "${SGIDEMOS_APP_MACOS_DIR}/data"
         COMMENT "Copying data and menu to app bundle"
+    )
+
+    file(WRITE "${CMAKE_BINARY_DIR}/buttonfly-launcher.sh" "#!/bin/bash
+SCRIPT_DIR=\"\$(cd \"\$(dirname \"\$0\")\" && pwd)\"
+cd \"\$SCRIPT_DIR\"
+exec \"\$SCRIPT_DIR/buttonfly-bin\" \"\$SCRIPT_DIR/menu\"
+")
+
+    add_custom_command(TARGET sgidemos-app POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/buttonfly-launcher.sh" "${SGIDEMOS_APP_MACOS_DIR}/buttonfly"
+        COMMAND chmod +x "${SGIDEMOS_APP_MACOS_DIR}/buttonfly"
+        COMMENT "Creating buttonfly launcher script"
     )
 
     file(WRITE "${CMAKE_BINARY_DIR}/SGIDemos.plist.in" "<?xml version=\"1.0\" encoding=\"UTF-8\"?>

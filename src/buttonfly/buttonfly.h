@@ -152,36 +152,48 @@ typedef struct path_struct_type {
     #include <time.h>
     #include <unistd.h>
     #include <sys/wait.h>
-    
+    #include <errno.h>
+    #ifdef __APPLE__
+    #include <mach-o/dyld.h>
+    #endif
+
     // Fonction pour exécuter une commande en arrière-plan (Unix)
     static void execute_async(const char* command) {
         pid_t pid = fork();
         if (pid == 0) {
-            // Processus enfant - parser la commande pour extraire exe et args
+            #ifdef __APPLE__
+            char exe_path[1024];
+            uint32_t size = sizeof(exe_path);
+            if (_NSGetExecutablePath(exe_path, &size) == 0) {
+                char *last_slash = strrchr(exe_path, '/');
+                if (last_slash) {
+                    *last_slash = '\0';
+                    chdir(exe_path);
+                }
+            }
+            #endif
+
             char* args[64];
             char cmd_copy[1024];
             int i = 0;
-            
+
             strncpy(cmd_copy, command, sizeof(cmd_copy) - 1);
             cmd_copy[sizeof(cmd_copy) - 1] = '\0';
-            
+
             char* token = strtok(cmd_copy, " ");
             while (token != NULL && i < 63) {
                 args[i++] = token;
                 token = strtok(NULL, " ");
             }
             args[i] = NULL;
-            
-            // Exécuter directement le programme
+
             execvp(args[0], args);
-            
-            // Si on arrive ici, exec a échoué
+
             fprintf(stderr, "ButtonFly: Failed to launch: %s\n", command);
             exit(1);
         } else if (pid < 0) {
             fprintf(stderr, "ButtonFly: fork() failed\n");
         }
-        // Le processus parent continue immédiatement
     }
 #endif
 
